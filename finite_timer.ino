@@ -1,3 +1,6 @@
+
+#define DBGpinENABLE
+
 //Used inputs:
 const int inputButton = 2; // This port is used as input
 //Used outputs:
@@ -69,9 +72,23 @@ void setOut(int param, bool state){
       else{digitalWrite(LEDout8, LOW);}
       break;
     case 9:
-      if (state == true){digitalWrite(Relay, HIGH);}
-      else{digitalWrite(Relay, LOW);}
-      break;              
+      if (state == true){
+      #ifdef DBGpinENABLE
+        digitalWrite(DEBUGpin, true); 
+      #else
+        digitalWrite(Relay, HIGH);
+      #endif
+    }
+      else{
+
+      #ifdef DBGpinENABLE
+        digitalWrite(DEBUGpin, false);
+      #else
+        digitalWrite(Relay, LOW);      
+      #endif
+    }
+      break;
+                 
     default:
         ;
       break;
@@ -117,7 +134,8 @@ void loop() {
   if(InterruptCounter == 1){
     buttonWasPressed = true;
   }
-  delay(50);
+//  delay(50);
+  delay(10);
   if((buttonWasPressed == true) && (buttonWasReleased == true)){
     buttonWasPressed = false;
     buttonWasReleased = false;
@@ -127,18 +145,23 @@ void loop() {
 
   selectProgram(swCounter);
  
-  if (swCounter >= 9){
+  if (swCounter >= 6){
     switchOffAllLEDs();
     swCounter = 0;
   }
   
-  delay(50);
-  increment_100msTimer();
+//  delay(50);
+  delay(10);
+  if (timer_is_enable == true){
+    increment_100msTimer();  
+  }
+  
 }
 
 void increment_100msTimer(){
     t_100msTimer++;
-    if (t_100msTimer >= 10){
+    // if (t_100msTimer >= 10){
+    if (t_100msTimer >= 1){    
     // if 1 second elapsed
       t_secTimer++;      
       // if 1 minute elapsed
@@ -162,51 +185,51 @@ void increment_1minTimer(){
 
 void selectProgram(byte inPram){
 
-//if (inPram == 1){
-//  setOut(7,true);
-//}
-//else {
-//  setOut(7,false);
-//}
   switch(inPram){
   case 0:
     // system is off - No logic is enable and no timers are active
+    timer_is_enable = false;
     program0Selected();
     break;
   case 1:
+    timer_is_enable = true;
     program1Selected();
     break;
   case 2:
+    timer_is_enable = true;
     program2Selected();
     break;
   case 3:
+    timer_is_enable = true;
     program3Selected();
     break;
   case 4:
+    timer_is_enable = true;
     program4Selected();
     break;
   case 5:
+    timer_is_enable = true;
     program5Selected();
     break;
   case 6:
+    timer_is_enable = true;  
     program6Selected();
     break;
   case 7:
+    timer_is_enable = true;  
     program7Selected();
     break;
   case 8:
+    timer_is_enable = true;
     program8Selected();
     break;
-
   }
-  
 }
 void program0Selected(){
-  // all timers are off
-//  timer_is_enable == false;
-  setTimerVariablesToZero();
-  // Relay is OFF
-  setOut(9,false);
+    setTimerVariablesToZero();
+    setOut(9,false);
+    firstCall = true;
+    swCounter = 0;
 }
 void program1Selected(){
   if (firstCall == true){
@@ -215,42 +238,97 @@ void program1Selected(){
   }
   if (swCounter != 1){
     firstCall = true;
+    setTimerVariablesToZero();
   }
-
     // 12 minutes ON
-    if (t_minTimer <= 12){
-      setOut(9,true);
-      digitalWrite(DEBUGpin, true); 
+    if (t_minTimer <= 12){    
+    setOut(9,true);
     }
     // 12 minutes OFF | Total minutes: 24
-    else if ((t_minTimer >= 12) && (t_minTimer <= 24))
-    {
+    else if ((t_minTimer >= 12) && (t_minTimer <= 24)){
       setOut(9,false);
-      digitalWrite(DEBUGpin, false); 
     }
     // 6 minutes ON | Total minutes: 30
-    else if ((t_minTimer >= 24) && (t_minTimer <= 30))
-    {
-      setOut(9,true);    
-      digitalWrite(DEBUGpin, true); 
+    else if ((t_minTimer >= 24) && (t_minTimer <= 30)){
+      setOut(9,true);
     }
     // 12 minutes OFF | Total minutes: 42
-    else if ((t_minTimer >= 30) && (t_minTimer <= 42))
-    {
-      setOut(9,false);    
-      digitalWrite(DEBUGpin, false); 
+    else if ((t_minTimer >= 30) && (t_minTimer <= 42)){
+      setOut(9,false); 
     }
     // 6 minutes ON | Total minutes: 48
-    else if ((t_minTimer >= 42) && (t_minTimer <= 48))
-    {
-      setOut(9,true);    
-      digitalWrite(DEBUGpin, true); 
+    else if ((t_minTimer >= 42) && (t_minTimer <= 48)){
+      setOut(9,true); 
     }
-    // 6 minutes ON | Total minutes: 48
-    else if (t_minTimer >= 48)
-    {
+  // Stop timers and switch program to 0
+    else if (t_minTimer >= 48){
       setOut(9,false);
-      digitalWrite(DEBUGpin, false); 
+      switchOffAllLEDs();
+      setTimerVariablesToZero();
+      swCounter = 0;
+      firstCall = true;
+    }
+    else{
+      // no action
+    }
+}
+void program2Selected(){
+  
+if (firstCall == true){
+    setTimerVariablesToZero();
+    firstCall = false;
+  }
+  if (swCounter != 2){
+    firstCall = true;
+    setTimerVariablesToZero();
+  }
+    // 12 minutes ON
+    if (t_minTimer <= 12){    
+    setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 24
+    else if ((t_minTimer >= 12) && (t_minTimer <= 24)){
+      setOut(9,false);
+    }
+    // 6 minutes ON | Total minutes: 30
+    else if ((t_minTimer >= 24) && (t_minTimer <= 30)){
+      setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 42
+    else if ((t_minTimer >= 30) && (t_minTimer <= 42)){
+      setOut(9,false); 
+    }
+    // 6 minutes ON | Total minutes: 48
+    else if ((t_minTimer >= 42) && (t_minTimer <= 48)){
+      setOut(9,true); 
+    }
+    // 12 minutes OFF | Total minutes: 60
+    else if ((t_minTimer >= 48) && (t_minTimer <= 60)){
+      setOut(9,false);    
+    }
+    // 6 minutes ON | Total minutes: 66
+    else if ((t_minTimer >= 60) && (t_minTimer <= 66)){
+      setOut(9,true);
+    }
+  // 12 minutes ON | Total minutes: 78
+    else if ((t_minTimer >= 66) && (t_minTimer <= 78)){
+      setOut(9,false);
+    }
+  // 6 minutes ON | Total minutes: 84
+    else if ((t_minTimer >= 78) && (t_minTimer <= 84)){
+      setOut(9,true);
+    }
+  // 12 minutes ON | Total minutes: 96
+    else if ((t_minTimer >= 84) && (t_minTimer <= 96)){
+      setOut(9,false);
+    }
+  // 12 minutes ON | Total minutes: 102
+    else if ((t_minTimer >= 96) && (t_minTimer <= 102)){
+      setOut(9,true);
+    }
+  // Stop timers and switch program to 0
+    else if (t_minTimer >= 102){
+      setOut(9,false);
       switchOffAllLEDs();
       timer_is_enable == false;
       setTimerVariablesToZero();
@@ -258,39 +336,281 @@ void program1Selected(){
       firstCall = true;
     }
     else{
-      //END program 1
-//      setOut(6,true);
+    // no action
     }
-    
-  
-}
-void program2Selected(){
-    setOut(9,false);// Relay disable
-  
 }
 void program3Selected(){
-    setOut(9,false);// Relay disable
-  
+  if (firstCall == true){
+    setTimerVariablesToZero();
+    firstCall = false;
+  }
+  if (swCounter != 3){
+    firstCall = true;
+    setTimerVariablesToZero();
+  }
+    // 12 minutes ON
+    if ((t_minTimer >= 12) && (t_minTimer <= 0)){    
+    setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 24
+    else if ((t_minTimer >= 12) && (t_minTimer <= 24)){
+      setOut(9,false);
+    }
+    // 6 minutes ON | Total minutes: 30
+    else if ((t_minTimer >= 24) && (t_minTimer <= 30)){
+      setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 42
+    else if ((t_minTimer >= 30) && (t_minTimer <= 42)){
+      setOut(9,false); 
+    }
+    // 6 minutes ON | Total minutes: 48
+    else if ((t_minTimer >= 42) && (t_minTimer <= 48)){
+      setOut(9,true); 
+    }
+  // No action for next 12 hours
+    else if ((t_minTimer >= 48)&& (t_minTimer <= 12 * 60)){
+      setOut(9,false);                        // 720
+    }   
+  // 12 minutes ON after 12 * 60 minutes has elapsed
+    else if ((t_minTimer >= 0 + 12 * 60) && (t_minTimer <= 12 + 12 * 60)){    
+    setOut(9,true);      // 720                                             // 732
+    }
+    // 12 minutes OFF | Total minutes: 24 after 12 * 60 minutes has elapsed
+    else if ((t_minTimer >= 12 + 12 * 60) && (t_minTimer <= 24 + 12 * 60)){
+      setOut(9,false);
+    }
+  // 6 minutes ON | Total minutes: 30 after 12 * 60 minutes has elapsed
+    else if ((t_minTimer >= 24 + 12 * 60) && (t_minTimer <= 30 + 12 * 60)){
+      setOut(9,true);
+    }
+  // 12 minutes OFF | Total minutes: 42 after 12 * 60 minutes has elapsed
+    else if ((t_minTimer >= 30 + 12 * 60) && (t_minTimer <= 42 + 12 * 60)){
+      setOut(9,false); 
+    }
+  // 6 minutes ON | Total minutes: 48 after 12 * 60 minutes has elapsed
+    else if ((t_minTimer >= 42 + 12 * 60) && (t_minTimer <= 48 + 12 * 60)){
+      setOut(9,true); 
+    }
+  // Stop timers and switch program to 0
+    else if (t_minTimer >=  48 + 12 * 60){
+      setOut(9,false);
+      switchOffAllLEDs();
+      timer_is_enable == false;
+      setTimerVariablesToZero();
+      swCounter = 0;
+      firstCall = true;
+    }
+    else{
+      // no action
+    }
 }
 void program4Selected(){
-    setOut(9,false);// Relay disable
-  
+  if (firstCall == true){
+    setTimerVariablesToZero();
+    firstCall = false;
+  }
+  if (swCounter != 4){
+    firstCall = true;
+    setTimerVariablesToZero();
+  }
+    // 12 minutes ON
+    if ((t_minTimer >= 12) && (t_minTimer <= 0)){    
+    setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 24
+    else if ((t_minTimer >= 12) && (t_minTimer <= 24)){
+      setOut(9,false);
+    }
+    // 6 minutes ON | Total minutes: 30
+    else if ((t_minTimer >= 24) && (t_minTimer <= 30)){
+      setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 42
+    else if ((t_minTimer >= 30) && (t_minTimer <= 42)){
+      setOut(9,false); 
+    }
+    // 6 minutes ON | Total minutes: 48
+    else if ((t_minTimer >= 42) && (t_minTimer <= 48)){
+      setOut(9,true); 
+    }
+  // No action for next 11 hours
+    else if ((t_minTimer >= 48)&& (t_minTimer <= 11 * 60)){
+      setOut(9,false); 
+    }   
+  // 12 minutes ON after 11 * 60 minutes has elapsed
+    else if ((t_minTimer >= 0 + 11 * 60) && (t_minTimer <= 12 + 11 * 60)){    
+    setOut(9,true);      // 660                                             // 672
+    }
+    // 12 minutes OFF | Total minutes: 24 after 11 * 60 minutes has elapsed
+    else if ((t_minTimer >= 12 + 11 * 60) && (t_minTimer <= 24 + 11 * 60)){
+      setOut(9,false);
+    }
+  // 6 minutes ON | Total minutes: 30 after 11 * 60 minutes has elapsed
+    else if ((t_minTimer >= 24 + 11 * 60) && (t_minTimer <= 30 + 11 * 60)){
+      setOut(9,true);
+    }
+  // 12 minutes OFF | Total minutes: 42 after 11 * 60 minutes has elapsed
+    else if ((t_minTimer >= 30 + 11 * 60) && (t_minTimer <= 42 + 11 * 60)){
+      setOut(9,false); 
+    }
+  // 6 minutes ON | Total minutes: 48 after 11 * 60 minutes has elapsed
+    else if ((t_minTimer >= 42 + 11 * 60) && (t_minTimer <= 48 + 11 * 60)){
+      setOut(9,true); 
+    }
+  // Stop timers and switch program to 0
+    else if (t_minTimer >=  48 + 11 * 60){
+      setOut(9,false);
+      switchOffAllLEDs();
+      timer_is_enable == false;
+      setTimerVariablesToZero();
+      swCounter = 0;
+      firstCall = true;
+    }
+    else{
+      // no action
+    }
 }
 void program5Selected(){
-    setOut(9,false);// Relay disable
-  
+  if (firstCall == true){
+    setTimerVariablesToZero();
+    firstCall = false;
+  }
+  if (swCounter != 5){
+    firstCall = true;
+    setTimerVariablesToZero();
+  }
+    // 12 minutes ON
+    if ((t_minTimer >= 12) && (t_minTimer <= 0)){    
+    setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 24
+    else if ((t_minTimer >= 12) && (t_minTimer <= 24)){
+      setOut(9,false);
+    }
+    // 6 minutes ON | Total minutes: 30
+    else if ((t_minTimer >= 24) && (t_minTimer <= 30)){
+      setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 42
+    else if ((t_minTimer >= 30) && (t_minTimer <= 42)){
+      setOut(9,false); 
+    }
+    // 6 minutes ON | Total minutes: 48
+    else if ((t_minTimer >= 42) && (t_minTimer <= 48)){
+      setOut(9,true); 
+    }
+  // No action for next 10 hours
+    else if ((t_minTimer >= 48)&& (t_minTimer <= 10 * 60)){
+      setOut(9,false); 
+    }   
+  // 12 minutes ON after 12 * 60 minutes has elapsed
+    else if ((t_minTimer >= 0 + 10 * 60) && (t_minTimer <= 12 + 10 * 60)){    
+    setOut(9,true);      // 600                                             // 612
+    }
+    // 12 minutes OFF | Total minutes: 24 after 10 * 60 minutes has elapsed
+    else if ((t_minTimer >= 12 + 10 * 60) && (t_minTimer <= 24 + 10 * 60)){
+      setOut(9,false);
+    }
+  // 6 minutes ON | Total minutes: 30 after 10 * 60 minutes has elapsed
+    else if ((t_minTimer >= 24 + 10 * 60) && (t_minTimer <= 30 + 10 * 60)){
+      setOut(9,true);
+    }
+  // 12 minutes OFF | Total minutes: 42 after 10 * 60 minutes has elapsed
+    else if ((t_minTimer >= 30 + 10 * 60) && (t_minTimer <= 42 + 10 * 60)){
+      setOut(9,false); 
+    }
+  // 6 minutes ON | Total minutes: 48 after 10 * 60 minutes has elapsed
+    else if ((t_minTimer >= 42 + 10 * 60) && (t_minTimer <= 48 + 10 * 60)){
+      setOut(9,true); 
+    }
+  // Stop timers and switch program to 0
+    else if (t_minTimer >=  48 + 10 * 60){
+      setOut(9,false);
+      switchOffAllLEDs();
+      timer_is_enable == false;
+      setTimerVariablesToZero();
+      swCounter = 0;
+      firstCall = true;
+    }
+    else{
+      // no action
+    }
 }
 void program6Selected(){
-    setOut(9,false);// Relay disable
-  
+  if (firstCall == true){
+    setTimerVariablesToZero();
+    firstCall = false;
+  }
+  if (swCounter != 6){
+    firstCall = true;
+    setTimerVariablesToZero();
+  }
+    // 12 minutes ON
+    if ((t_minTimer >= 12) && (t_minTimer <= 0)){    
+    setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 24
+    else if ((t_minTimer >= 12) && (t_minTimer <= 24)){
+      setOut(9,false);
+    }
+    // 6 minutes ON | Total minutes: 30
+    else if ((t_minTimer >= 24) && (t_minTimer <= 30)){
+      setOut(9,true);
+    }
+    // 12 minutes OFF | Total minutes: 42
+    else if ((t_minTimer >= 30) && (t_minTimer <= 42)){
+      setOut(9,false); 
+    }
+    // 6 minutes ON | Total minutes: 48
+    else if ((t_minTimer >= 42) && (t_minTimer <= 48)){
+      setOut(9,true); 
+    }
+  // No action for next 9 hours
+    else if ((t_minTimer >= 48)&& (t_minTimer <= 9 * 60)){
+      setOut(9,false); 
+    }   
+  // 12 minutes ON after 12 * 60 minutes has elapsed
+    else if ((t_minTimer >= 0 + 9 * 60) && (t_minTimer <= 12 + 9 * 60)){    
+    setOut(9,true);      // 540                                           // 552
+    }
+    // 12 minutes OFF | Total minutes: 24 after 9 * 60 minutes has elapsed
+    else if ((t_minTimer >= 12 + 9 * 60) && (t_minTimer <= 24 + 9 * 60)){
+      setOut(9,false);
+    }
+  // 6 minutes ON | Total minutes: 30 after 9 * 60 minutes has elapsed
+    else if ((t_minTimer >= 24 + 9 * 60) && (t_minTimer <= 30 + 9 * 60)){
+      setOut(9,true);
+    }
+  // 12 minutes OFF | Total minutes: 42 after 9 * 60 minutes has elapsed
+    else if ((t_minTimer >= 30 + 9 * 60) && (t_minTimer <= 42 + 9 * 60)){
+      setOut(9,false); 
+    }
+  // 6 minutes ON | Total minutes: 48 after 9 * 60 minutes has elapsed
+    else if ((t_minTimer >= 42 + 9 * 60) && (t_minTimer <= 48 + 9 * 60)){
+      setOut(9,true); 
+    }
+  // Stop timers and switch program to 0 after 9 * 60 minutes has elapsed
+    else if (t_minTimer >=  48 + 9 * 60){
+      setOut(9,false);
+      switchOffAllLEDs();
+      timer_is_enable == false;
+      setTimerVariablesToZero();
+      swCounter = 0;
+      firstCall = true;
+    }
+    else{
+      // no action
+    }
 }
 void program7Selected(){
     setOut(9,false);// Relay disable
+    setTimerVariablesToZero();
   
 }
 void program8Selected(){
     setOut(9,false);// Relay disable
-  
+    setTimerVariablesToZero();
 }
 
 void setTimerVariablesToZero(){
@@ -298,10 +618,6 @@ void setTimerVariablesToZero(){
   t_secTimer = 0;
   t_minTimer = 0;
 }
-
-
-
-
 
 void switchOffAllLEDs(){
   for (int i = 1; i < 9; i ++){
@@ -316,4 +632,3 @@ void btnStateChange(){
     buttonWasReleased = true;
   }
 }
-
